@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="yes" name="apple-mobile-web-app-capable">
+  <meta content="yes" name="apple-touch-fullscreen">
+  <meta content="telephone=no,email=no" name="format-detection">
+  <meta content="yes" name="apple-mobile-web-app-capable">
+  <meta content="black" name="apple-mobile-web-app-status-bar-style">
+  <script src="js/adaptive.min.js"></script>
+  <script src="js/jquery-2.1.0.js"></script>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    body{
+      max-width: 7.50rem; /* 750/100 */
+      margin: 0 auto;
+      background: pink;
+    }
+    body *{
+      max-width: 7.50rem; /* 750/100 */
+    }
+
+    #guaguale{
+      margin: 2.20rem auto; /* 20/100 */
+      width: 5.52rem; /* 552/100 */
+      height: 2.20rem; /* 73/100 */
+      background: url(../images/guajiangqu.png);
+      background-size: 100%;
+    }
+  </style>
+  <script>
+    // 设计图宽度
+    window['adaptive'].desinWidth = 750;
+    // body 字体大小 会将body字体大小设置为 baseFont / 100 + 'rem'  750的设计图一般设置为28,640的设计图一般设置为24
+    window['adaptive'].baseFont = 24;
+    //最大宽度
+    window['adaptive'].maxWidth = 750;
+    // 初始化
+    window['adaptive'].init();
+  </script>
+  <title>刮刮乐-移动端</title>
+</head>
+<body>
+  <div class="guaguale" id="guaguale">
+    <p class="prase"></p>
+    <p class="tips"></p>
+    <canvas id="canvas"></canvas>
+  </div>
+</body>
+<script>
+  $(function() {
+
+  var guaguale = document.getElementById("guaguale");
+  var oC = document.getElementById("canvas");
+
+  //画布offsetLeft/offsetTop
+  var  offLeft = document.getElementById("guaguale").offsetLeft;
+  var  offTop = document.getElementById("guaguale").offsetTop;
+  var  offWidth = document.getElementById("guaguale").offsetWidth;
+  var  offHeight = document.getElementById("guaguale").offsetHeight;
+
+  //设置canvas的宽高，position
+  oC.width = offWidth;
+  oC.height = offHeight;
+
+  var ctx = oC.getContext('2d');
+  var img = new Image();
+  img.setAttribute("class","drawImgs");
+
+  img.addEventListener('load',function(){
+    ctx.drawImage(img,0,0,offWidth,offHeight);
+  })
+
+  img.src="images/guajiangqu2.png";
+
+  touchfun();//刮刮乐运动
+
+  function touchfun (){
+
+    oC.addEventListener('touchstart',function(event){
+      var x = event.offsetX;
+      var y = event.offsetY;
+
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 15;
+      ctx.lineCap = 'round';
+      //开始绘制
+      ctx.beginPath();
+
+      oC.addEventListener('touchmove',function(event){
+        event.preventDefault();
+        event = event || window.event;
+        var touch = event.touches[0];
+        var x = touch.pageX - offLeft; //页面触点X坐标
+        var y = touch.pageY - offTop; //页面触点Y坐标
+        ctx.lineTo(x+5,y+5);
+        ctx.stroke();
+
+      })
+
+      oC.addEventListener('touchend',function(){
+        oC.ontouchmove = null;
+        oC.ontouchend = null;
+        var getImg = ctx.getImageData(0,0,offWidth,offHeight);
+        var getW = getImg.width;
+        var getH = getImg.height;
+        var count = 0;
+
+        for (var i = 0; i < getH; i++) {
+          for (var j = 0; j < getW; j++) {
+            var colors = getXY(getImg,j,i);
+            if(colors[3] == 0){
+              count++;
+            }
+          }
+        }
+        if(count>(getH*getW/3)){
+            oC.parentNode.removeChild(oC);
+            $("#guaguale").html("谢谢参与，明日再来吧！").css({'text-align':'center','line-height':'2.20rem'})
+        }
+
+      })
+    })
+    
+  }
+
+  function getXY(img,x,y){
+		var w = img.width;
+		var h = img.height;
+		var d = img.data;
+		var colors = [];
+		colors[0] = d[(y*w+x)*4];
+		colors[1] = d[(y*w+x)*4+1];
+		colors[2] = d[(y*w+x)*4+2];
+		colors[3] = d[(y*w+x)*4+3];
+		return colors;
+	}
+	function setXY(img,x,y,colors){
+		var w = img.width;
+		var h = img.height;
+		var d = img.data;
+		d[(y*w+x)*4] = colors[0];
+		d[(y*w+x)*4+1] = colors[1];
+		d[(y*w+x)*4+2] = colors[2];
+		d[(y*w+x)*4+3] = colors[3];
+	};
+
+
+  })
+</script>
+
+</html>
